@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpinMaster Pro - Video Rewards</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* All previous CSS remains the same */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #FF0000;
+            --primary-dark: #CC0000;
+            --secondary: #282828;
+            --accent: #FFD700;
+            --success: #00C851;
+            --warning: #ffbb33;
+            --danger: #ff4444;
+            --info: #33b5e5;
+            --dark: #1a1a1a;
+            --light: #ffffff;
+            --gray: #666666;
+            --bg-dark: #0f0f0f;
+            --bg-card: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #aaaaaa;
+        }
+
+        [data-theme="light"] {
+            --primary: #FF0000;
+            --primary-dark: #CC0000;
+            --secondary: #f8f9fa;
+            --accent: #FFD700;
+            --success: #00C851;
+            --warning: #ffbb33;
+            --danger: #ff4444;
+            --info: #33b5e5;
+            --dark: #333333;
+            --light: #ffffff;
+            --gray: #666666;
+            --bg-dark: #f8f9fa;
+            --bg-card: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* All other CSS remains exactly the same as previous code */
+        /* ... (Include all the CSS from previous code) ... */
+
+    </style>
+</head>
+<body data-theme="dark">
+    <div class="container">
+        <!-- All HTML structure remains the same -->
+        <!-- ... (Include all HTML from previous code) ... -->
+    </div>
+
+    <!-- Video Modal -->
+    <div id="videoModal" class="video-modal hidden">
+        <!-- ... (Include video modal HTML from previous code) ... -->
+    </div>
+
+    <script>
+        // App Configuration
+        const VIDEOS_REQUIRED = 15;
+        const MIN_WATCH_TIME = 60;
+        const DAILY_SPINS = 15;
+
+        // Your YouTube videos
+        const youtubeVideos = [
+            {
+                id: 1,
+                title: "Mindset Transformation - Unlock Your Potential",
+                videoId: "-Q5dyIy1Jjc",
+                duration: "1:15"
+            },
+            {
+                id: 2,
+                title: "Fitness Motivation - Start Your Journey",
+                videoId: "FqRLRMrWFls",
+                duration: "1:30"
+            },
+            {
+                id: 3,
+                title: "Success Habits - Daily Routine",
+                videoId: "ZX8MFCtTcHM",
+                duration: "1:10"
+            },
+            {
+                id: 4,
+                title: "Healthy Lifestyle - Nutrition Guide",
+                videoId: "4P5K2Vm8e40",
+                duration: "1:25"
+            },
+            {
+                id: 5,
+                title: "Workout Music - Energy Boost",
+                videoId: "nqU0fcfZGEI",
+                duration: "1:20"
+            },
+            {
+                id: 6,
+                title: "Positive Mindset - Think and Grow",
+                videoId: "urx_wLL9SBo",
+                duration: "1:35"
+            },
+            {
+                id: 7,
+                title: "Meditation Guide - Peaceful Mind",
+                videoId: "jif9wroZzrs",
+                duration: "1:15"
+            },
+            {
+                id: 8,
+                title: "Diet Plan - Healthy Eating",
+                videoId: "16e9IUygegk",
+                duration: "1:40"
+            },
+            {
+                id: 9,
+                title: "Goal Setting - Achieve Dreams",
+                videoId: "jif9wroZzrs",
+                duration: "1:10"
+            },
+            {
+                id: 10,
+                title: "Time Management - Productivity Tips",
+                videoId: "QwkuybN0ghs",
+                duration: "1:30"
+            },
+            {
+                id: 11,
+                title: "Stress Relief - Relaxation Techniques",
+                videoId: "ueOW1OCuPL4",
+                duration: "1:25"
+            },
+            {
+                id: 12,
+                title: "Success Mindset - Winning Attitude",
+                videoId: "SphlMs4G0rY",
+                duration: "1:20"
+            },
+            {
+                id: 13,
+                title: "Fitness Journey - Transformation Story",
+                videoId: "TrJgGkizVFY",
+                duration: "1:35"
+            },
+            {
+                id: 14,
+                title: "Daily Exercise - Stay Active",
+                videoId: "zo0ctcoHG1E",
+                duration: "1:15"
+            },
+            {
+                id: 15,
+                title: "Mental Health - Self Care Guide",
+                videoId: "FEQF9fGebXA",
+                duration: "1:30"
+            }
+        ];
+
+        // App State
+        let userData = {
+            totalPoints: 0,
+            dailySpins: 0,
+            videosWatched: 0,
+            spinHistory: [],
+            language: 'en',
+            theme: 'dark'
+        };
+
+        let currentVideoTimer = null;
+        let currentVideoId = null;
+        let timerInterval = null;
+        let timeWatched = 0;
+        let isSpinning = false;
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            createFixedWheelSections();
+            loadVideos();
+            updateUI();
+        }
+
+        // FIXED: Wheel creation function
+        function createFixedWheelSections() {
+            const wheel = document.getElementById('wheel');
+            wheel.innerHTML = '';
+            
+            const points = [10, 25, 50, 75, 100, 150, 200, 10];
+            const colors = [
+                '#FF6B6B', '#FFA726', '#FFEE58', '#66BB6A',
+                '#42A5F5', '#5C6BC0', '#AB47BC', '#EC407A'
+            ];
+
+            wheel.style.background = `conic-gradient(
+                from 0deg,
+                ${colors[0]} 0deg 45deg,
+                ${colors[1]} 45deg 90deg,
+                ${colors[2]} 90deg 135deg,
+                ${colors[3]} 135deg 180deg,
+                ${colors[4]} 180deg 225deg,
+                ${colors[5]} 225deg 270deg,
+                ${colors[6]} 270deg 315deg,
+                ${colors[7]} 315deg 360deg
+            )`;
+
+            points.forEach((point, index) => {
+                const value = document.createElement('div');
+                value.className = 'wheel-number';
+                value.textContent = point;
+                value.style.color = 'white';
+                value.style.fontWeight = 'bold';
+                value.style.fontSize = '1.6rem';
+                value.style.textShadow = '2px 2px 6px rgba(0,0,0,0.9)';
+                value.style.position = 'absolute';
+                value.style.zIndex = '2';
+
+                const angle = (index * 45) + 22.5;
+                const radius = 110;
+                const radian = (angle * Math.PI) / 180;
+                const x = Math.cos(radian) * radius;
+                const y = Math.sin(radian) * radius;
+
+                value.style.left = `calc(50% + ${x}px)`;
+                value.style.top = `calc(50% + ${y}px)`;
+                value.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+
+                wheel.appendChild(value);
+            });
+
+            const center = document.createElement('div');
+            center.className = 'wheel-center';
+            center.textContent = 'SPIN';
+            wheel.appendChild(center);
+        }
+
+        // All other functions remain the same until spinWheel function
+
+        // FIXED: Corrected spin wheel function with accurate point calculation
+        function spinWheel() {
+            if (isSpinning) return;
+            
+            if (userData.dailySpins <= 0) {
+                showNotification('❌ No spins left! Watch videos to earn more spins.');
+                return;
+            }
+
+            if (userData.videosWatched < userData.dailySpins) {
+                showNotification('⚠️ Please watch required videos before spinning!');
+                return;
+            }
+
+            const spinBtn = document.getElementById('spinBtn');
+            const wheel = document.getElementById('wheel');
+            
+            spinBtn.disabled = true;
+            isSpinning = true;
+
+            // Define wheel segments and their values
+            const segments = [10, 25, 50, 75, 100, 150, 200, 10];
+            const segmentAngle = 360 / segments.length; // 45 degrees per segment
+            
+            // Choose a random segment to land on (0-7)
+            const targetSegment = Math.floor(Math.random() * segments.length);
+            
+            // Calculate the angle that will make the wheel stop with the pointer at the target segment
+            // Pointer is at top (0 degrees), target segment should be at pointer position
+            const targetAngle = 360 - (targetSegment * segmentAngle + segmentAngle / 2);
+            
+            // Add multiple full rotations for visual effect
+            const fullRotations = 5;
+            const totalDegrees = (fullRotations * 360) + targetAngle;
+
+            // Reset wheel position
+            wheel.style.transition = 'none';
+            wheel.style.transform = 'rotate(0deg)';
+            
+            // Force reflow
+            wheel.offsetHeight;
+            
+            // Start spin animation
+            wheel.style.transition = `transform 5s cubic-bezier(0.2, 0.8, 0.3, 1)`;
+            wheel.style.transform = `rotate(${totalDegrees}deg)`;
+
+            // Get the points for the target segment
+            const points = segments[targetSegment];
+
+            setTimeout(() => {
+                showSpinResult(points);
+                updateUserStats(points);
+                spinBtn.disabled = false;
+                isSpinning = false;
+                
+                // Debug information
+                console.log(`Target Segment: ${targetSegment}`);
+                console.log(`Target Angle: ${targetAngle}`);
+                console.log(`Points Won: ${points}`);
+            }, 5200);
+        }
+
+        // Remove the old calculateWheelResult function since we're now using target-based calculation
+
+        function updateUserStats(points) {
+            userData.dailySpins--;
+            userData.totalPoints += points;
+            userData.spinHistory.unshift({
+                date: new Date(),
+                points: points
+            });
+
+            updateUI();
+            showNotification(`🎉 You won ${points} points!`);
+        }
+
+        // All other functions remain exactly the same
+        function loadVideos() {
+            const videoList = document.getElementById('videoList');
+            videoList.innerHTML = youtubeVideos.map(video => `
+                <div class="video-card">
+                    <div class="video-thumbnail" onclick="openVideoModal(${video.id})">
+                        <i class="fab fa-youtube"></i>
+                        <span class="video-duration">${video.duration}</span>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-title">${video.title}</div>
+                        <div class="video-meta">
+                            <span>Premium Content</span>
+                            <span>${video.duration}</span>
+                        </div>
+                        <button class="watch-btn ${isVideoWatched(video.id) ? 'watched' : ''}" 
+                                onclick="startVideoTimer(${video.id})" 
+                                ${isVideoWatched(video.id) ? 'disabled' : ''}>
+                            <i class="fas ${isVideoWatched(video.id) ? 'fa-check' : 'fa-play'}"></i>
+                            ${isVideoWatched(video.id) ? 'Watched' : 'Watch Now'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function isVideoWatched(videoId) {
+            return userData.videosWatched >= videoId;
+        }
+
+        function openVideoModal(videoId) {
+            const video = youtubeVideos.find(v => v.id === videoId);
+            if (!video) return;
+
+            const videoPlayer = document.getElementById('videoPlayer');
+            videoPlayer.src = `https://www.youtube.com/embed/${video.videoId}?autoplay=1&enablejsapi=1&modestbranding=1&rel=0&showinfo=0`;
+            document.getElementById('videoModal').classList.remove('hidden');
+        }
+
+        function startVideoTimer(videoId) {
+            if (isVideoWatched(videoId)) {
+                showNotification('✅ You have already watched this video!');
+                return;
+            }
+
+            currentVideoId = videoId;
+            timeWatched = 0;
+            openVideoModal(videoId);
+
+            timerInterval = setInterval(() => {
+                timeWatched++;
+                const remaining = MIN_WATCH_TIME - timeWatched;
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                document.getElementById('timerText').textContent = `Watch for ${minutes}:${seconds.toString().padStart(2, '0')} to earn a spin`;
+                
+                const progress = (timeWatched / MIN_WATCH_TIME) * 100;
+                document.getElementById('timerProgressBar').style.width = `${progress}%`;
+
+                if (timeWatched >= MIN_WATCH_TIME) {
+                    completeVideoWatch(videoId);
+                }
+            }, 1000);
+
+            const buttons = document.querySelectorAll('.watch-btn');
+            buttons[videoId - 1].classList.add('watching');
+            buttons[videoId - 1].innerHTML = '<i class="fas fa-spinner fa-spin"></i> Watching...';
+            buttons[videoId - 1].disabled = true;
+        }
+
+        function closeVideoModal() {
+            document.getElementById('videoModal').classList.add('hidden');
+            const videoPlayer = document.getElementById('videoPlayer');
+            videoPlayer.src = '';
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            document.getElementById('timerText').textContent = 'Watch for 1:00 to earn a spin';
+            document.getElementById('timerProgressBar').style.width = '0%';
+        }
+
+        function completeVideoWatch(videoId) {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            userData.videosWatched++;
+            if (userData.videosWatched <= DAILY_SPINS) {
+                userData.dailySpins = Math.min(userData.dailySpins + 1, DAILY_SPINS);
+            }
+
+            updateUI();
+            showNotification('🎉 Video completed! You earned 1 spin!');
+
+            setTimeout(() => {
+                closeVideoModal();
+            }, 2000);
+        }
+
+        function showSpinResult(points) {
+            document.getElementById('wonPoints').textContent = points;
+            document.getElementById('spinResult').classList.remove('hidden');
+        }
+
+        function closeResult() {
+            document.getElementById('spinResult').classList.add('hidden');
+        }
+
+        function updateUI() {
+            document.getElementById('todaySpins').textContent = `${userData.dailySpins}/${DAILY_SPINS}`;
+            document.getElementById('totalPoints').textContent = userData.totalPoints;
+            document.getElementById('totalPointsDisplay').textContent = userData.totalPoints;
+            document.getElementById('videosWatched').textContent = `${userData.videosWatched}/${VIDEOS_REQUIRED}`;
+            document.getElementById('remainingSpins').textContent = userData.dailySpins;
+            document.getElementById('videoProgress').textContent = `${userData.videosWatched}/${VIDEOS_REQUIRED} Completed`;
+            
+            const rank = userData.totalPoints >= 1000 ? 'Pro' : 
+                        userData.totalPoints >= 500 ? 'Advanced' : 
+                        userData.totalPoints >= 100 ? 'Intermediate' : 'Beginner';
+            document.getElementById('userRank').textContent = rank;
+
+            loadVideos();
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', newTheme);
+            
+            const themeIcon = document.querySelector('.fa-moon, .fa-sun');
+            if (newTheme === 'dark') {
+                themeIcon.className = 'fas fa-moon';
+            } else {
+                themeIcon.className = 'fas fa-sun';
+            }
+            
+            userData.theme = newTheme;
+        }
+
+        function changeLanguage(lang) {
+            userData.language = lang;
+            showNotification(`Language changed to ${lang.toUpperCase()}`);
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                userData = {
+                    totalPoints: 0,
+                    dailySpins: 0,
+                    videosWatched: 0,
+                    spinHistory: [],
+                    language: 'en',
+                    theme: 'dark'
+                };
+                
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                
+                updateUI();
+                showNotification('Logged out successfully!');
+            }
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--primary);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                z-index: 1001;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
